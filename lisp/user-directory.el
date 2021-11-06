@@ -75,6 +75,26 @@ directory if it does not exist."
   (expand-file-name name (user-directory type)))
 
 ;;;###autoload
+(cl-defgeneric user-directory (type)
+  "Return a user-specific directory of TYPE.
+TYPE is one of these symbols:
+
+ - cache        Emacs cached files
+ - config       Emacs configuration files
+ - data         Emacs data
+ - runtime      Emacs runtime files
+ - state        Emacs session data
+ - desktop      User desktop          (e.g. \"~/Desktop\")
+ - downloads    User downloaded files (e.g. \"~/Downloads\")
+ - documents    User documents        (e.g. \"~/Documents\")
+ - music        User music files      (e.g. \"~/Music\")
+ - public       User shared files     (e.g. \"~/Public\")
+ - pictures     User picture files    (e.g. \"~/Pictures\")
+ - templates    User template files   (e.g. \"~/Templates\")
+ - videos       User video files      (e.g. \"~/Videos\")
+
+For more details, see below.")
+
 (cl-defmethod user-directory :around (type)
   ;; TODO: Do more work to ensure the directory makes sense, as in
   ;; `locate-user-emacs-file'.
@@ -127,41 +147,49 @@ not important enough to store in the data directory."
 ;;;; User files.
 
 (cl-defmethod user-directory ((_type (eql 'desktop)))
+  "Return user desktop directory."
   (cond ((xdg-user-dir "DESKTOP"))
         ;; TODO: Insert other platforms here.
         ("~/Desktop")))
 
 (cl-defmethod user-directory ((_type (eql 'downloads)))
+  "Return user directory for downloads."
   (cond ((xdg-user-dir "DOWNLOAD"))
         ;; TODO: Insert other platforms here.
         ("~/Downloads")))
 
 (cl-defmethod user-directory ((_type (eql 'documents)))
+  "Return user directory for documents."
   (cond ((xdg-user-dir "DOCUMENTS"))
         ;; TODO: Insert other platforms here.
         ("~/Documents")))
 
 (cl-defmethod user-directory ((_type (eql 'music)))
+  "Return user directory for music."
   (cond ((xdg-user-dir "MUSIC"))
         ;; TODO: Insert other platforms here.
         ("~/Music")))
 
 (cl-defmethod user-directory ((_type (eql 'public)))
+  "Return user directory for public (shared) files."
   (cond ((xdg-user-dir "PUBLIC"))
         ;; TODO: Insert other platforms here.
         ("~/Public")))
 
 (cl-defmethod user-directory ((_type (eql 'pictures)))
+  "Return user directory for documents."
   (cond ((xdg-user-dir "PICTURES"))
         ;; TODO: Insert other platforms here.
         ("~/Pictures")))
 
 (cl-defmethod user-directory ((_type (eql 'templates)))
+  "Return user directory for templates."
   (cond ((xdg-user-dir "TEMPLATES"))
         ;; TODO: Insert other platforms here.
         ("~/Templates")))
 
 (cl-defmethod user-directory ((_type (eql 'videos)))
+  "Return user directory for video files."
   (cond ((xdg-user-dir "VIDEOS"))
         ;; TODO: Insert other platforms here.
         ("~/Videos")))
