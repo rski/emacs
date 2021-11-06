@@ -45,10 +45,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "syssignal.h"
 #include "sysstdio.h"
-#ifdef MSDOS
-#include "msdos.h"
-static int been_here = -1;
-#endif
 
 #ifdef USE_X_TOOLKIT
 #include "../lwlib/lwlib.h"
@@ -2280,11 +2276,9 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       reset_sys_modes (t->display_info.tty);
       delete_keyboard_wait_descriptor (fileno (f));
 
-#ifndef MSDOS
       fclose (f);
       if (f != t->display_info.tty->output)
         fclose (t->display_info.tty->output);
-#endif
 
       t->display_info.tty->input = 0;
       t->display_info.tty->output = 0;
@@ -2330,10 +2324,6 @@ frame's terminal). */)
       if (get_named_terminal (t->display_info.tty->name))
         error ("Cannot resume display while another display is active on the same device");
 
-#ifdef MSDOS
-      t->display_info.tty->output = stdout;
-      t->display_info.tty->input  = stdin;
-#else  /* !MSDOS */
       fd = emacs_open (t->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
       t->display_info.tty->input = t->display_info.tty->output
 	= fd < 0 ? 0 : fdopen (fd, "w+");
@@ -2349,7 +2339,6 @@ frame's terminal). */)
 
       if (!O_IGNORE_CTTY && strcmp (t->display_info.tty->name, DEV_TTY) != 0)
         dissociate_if_controlling_tty (fd);
-#endif
 
       add_keyboard_wait_descriptor (fd);
 
@@ -3760,7 +3749,6 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
 #endif	/* !MSDOS */
 
 
-#ifndef MSDOS
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
@@ -3790,17 +3778,6 @@ tty_free_frame_resources (struct frame *f)
   xfree (f->output_data.tty);
 }
 
-#else  /* MSDOS */
-
-/* Delete frame F's face cache.  */
-
-static void
-tty_free_frame_resources (struct frame *f)
-{
-  eassert (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
-  free_frame_faces (f);
-}
-#endif	/* MSDOS */
 
 /* Reset the hooks in TERMINAL.  */
 
@@ -3863,11 +3840,7 @@ set_tty_hooks (struct terminal *terminal)
   terminal->reset_terminal_modes_hook = &tty_reset_terminal_modes;
   terminal->set_terminal_modes_hook = &tty_set_terminal_modes;
   terminal->update_end_hook = &tty_update_end;
-#ifdef MSDOS
-  terminal->menu_show_hook = &x_menu_show;
-#else
   terminal->menu_show_hook = &tty_menu_show;
-#endif
   terminal->set_terminal_window_hook = &tty_set_terminal_window;
   terminal->defined_color_hook = &tty_defined_color; /* xfaces.c */
   terminal->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
@@ -3942,15 +3915,7 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
     return terminal;
 
   terminal = create_terminal (output_termcap, NULL);
-#ifdef MSDOS
-  if (been_here > 0)
-    maybe_fatal (0, 0, "Attempt to create another terminal %s", "",
-		 name, "");
-  been_here = 1;
-  tty = &the_only_display_info;
-#else
   tty = xzalloc (sizeof *tty);
-#endif
   tty->top_frame = Qnil;
   tty->next = tty_list;
   tty_list = tty;
@@ -4553,7 +4518,6 @@ trigger redisplay.  */);
   DEFSYM (Qtty_mode_set_strings, "tty-mode-set-strings");
   DEFSYM (Qtty_mode_reset_strings, "tty-mode-reset-strings");
 
-#ifndef MSDOS
   DEFSYM (Qtty_menu_next_item, "tty-menu-next-item");
   DEFSYM (Qtty_menu_prev_item, "tty-menu-prev-item");
   DEFSYM (Qtty_menu_next_menu, "tty-menu-next-menu");
@@ -4563,5 +4527,4 @@ trigger redisplay.  */);
   DEFSYM (Qtty_menu_exit, "tty-menu-exit");
   DEFSYM (Qtty_menu_mouse_movement, "tty-menu-mouse-movement");
   DEFSYM (Qtty_menu_navigation_map, "tty-menu-navigation-map");
-#endif
 }
