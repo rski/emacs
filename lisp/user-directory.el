@@ -107,14 +107,14 @@ For more details, see below.")
 (cl-defmethod user-directory ((_type (eql 'cache)))
   "Return the user cache directory.
 The user should be able to remove cache "
-  (cond ((xdg-cache-home))
+  (cond ((expand-file-name "emacs" (xdg-cache-home)))
         ;; TODO: Insert other platforms here.
         ("~/.cache")))
 
 (cl-defmethod user-directory ((_type (eql 'config)))
   "Return the user cache directory.
 The cache directory contains non-essential user data."
-  (cond ((xdg-config-home))
+  (cond ((expand-file-name "emacs" (xdg-config-home)))
         ;; TODO: Insert other platforms here.
         ("~/.cache")))
 
@@ -122,7 +122,7 @@ The cache directory contains non-essential user data."
   "Return the user data directory.
 The data directory contains user-specific data files.
 See also the state directory."
-  (cond ((xdg-data-home))
+  (cond ((expand-file-name "emacs" (xdg-data-home)))
         ;; TODO: Insert other platforms here.
         ("~/.local/share")))
 
@@ -131,7 +131,7 @@ See also the state directory."
 The runtime directory contains user-specific non-essential
 runtime files and other file objects (such as sockets, named
 pipes, ...)."
-  (cond ((xdg-runtime-dir))
+  (cond ((expand-file-name "emacs" (xdg-runtime-dir)))
         ;; TODO: Insert other platforms here.
         ("~/.local/state")))
 
@@ -140,9 +140,9 @@ pipes, ...)."
 In comparison to the data directory, the state directory contains
 user data that should persist between restarts of Emacs, but is
 not important enough to store in the data directory."
-  (cond ((xdg-state-home))
+  (cond ((expand-file-name "emacs" (xdg-state-home)))
         ;; TODO: Insert other platforms here.
-        ("~/.local/state")))
+        ("~/.local/state/emacs")))
 
 ;;;; User files.
 
