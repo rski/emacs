@@ -5598,9 +5598,7 @@ HAVE_OLDXMENU=no
 if test "$HAVE_GTK" = yes || test "$HAVE_X11" != yes; then
   LIBXMENU=
 elif test "$USE_X_TOOLKIT" = none; then
-  HAVE_OLDXMENU=yes
-  LIBXMENU='$(oldXMenudir)/libXMenu11.a'
-  AUTODEPEND_PARENTS="$AUTODEPEND_PARENTS oldXMenu"
+  AC_MSG_ERROR([Non-ELF systems are not supported on this platform.])
 else
   LIBXMENU='$(lwlibdir)/liblw.a'
   AUTODEPEND_PARENTS="$AUTODEPEND_PARENTS lwlib"
@@ -6058,7 +6056,7 @@ dnl config.status treats $srcdir specially, so I think this is ok...
 AC_CONFIG_FILES([$srcdir/doc/man/emacs.1])
 
 m4_define([subdir_makefiles],
-  [lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile nt/Makefile])
+  [lib/Makefile lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile nextstep/Makefile nt/Makefile])
 SUBDIR_MAKEFILES="subdir_makefiles"
 AC_CONFIG_FILES(subdir_makefiles)
 

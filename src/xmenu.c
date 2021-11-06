@@ -86,11 +86,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef USE_MOTIF
 #include "../lwlib/lwlib.h"
 #endif
-#else /* not USE_X_TOOLKIT */
-#ifndef USE_GTK
-#include "../oldXMenu/XMenu.h"
 #endif
-#endif /* not USE_X_TOOLKIT */
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef USE_GTK
