@@ -72,17 +72,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32.h"
 #endif /* not WINDOWSNT */
 
-#ifdef MSDOS
-#include "msdos.h"
-#include <sys/param.h>
-#endif
-
 #ifdef DOS_NT
-/* On Windows, drive letters must be alphabetic - on DOS, the Netware
-   redirector allows the six letters between 'Z' and 'a' as well.  */
-#ifdef MSDOS
-#define IS_DRIVE(x) ((x) >= 'A' && (x) <= 'z')
-#endif
+/* On Windows, drive letters must be alphabetic */
 #ifdef WINDOWSNT
 #define IS_DRIVE(x) c_isalpha (x)
 #endif
@@ -147,18 +138,6 @@ static bool e_write (int, Lisp_Object, ptrdiff_t, ptrdiff_t,
 bool
 file_access_p (char const *file, int amode)
 {
-#ifdef MSDOS
-  if (amode & W_OK)
-    {
-      /* FIXME: The MS-DOS faccessat implementation should handle this.  */
-      struct stat st;
-      if (stat (file, &st) != 0)
-	return false;
-      errno = EPERM;
-      return st.st_mode & S_IWRITE || S_ISDIR (st.st_mode);
-    }
-#endif
-
   if (faccessat (AT_FDCWD, file, amode, AT_EACCESS) == 0)
     return true;
 
@@ -1198,9 +1177,6 @@ the root directory.  */)
      allocating a new string if name is already fully expanded.  */
   if (
       IS_DIRECTORY_SEP (nm[0])
-#ifdef MSDOS
-      && drive && !is_escaped
-#endif
 #ifdef WINDOWSNT
       && (drive || IS_DIRECTORY_SEP (nm[1])) && !is_escaped
 #endif
@@ -2242,11 +2218,7 @@ permissions.  */)
     report_file_errno ("Non-regular file", file,
 		       S_ISDIR (st.st_mode) ? EISDIR : EINVAL);
 
-#ifndef MSDOS
-  new_mask = st.st_mode & (!NILP (preserve_uid_gid) ? 0700 : 0777);
-#else
   new_mask = S_IREAD | S_IWRITE;
-#endif
 
   ofd = emacs_open (SSDATA (encoded_newname), O_WRONLY | O_CREAT | O_EXCL,
 		    new_mask);
@@ -2325,7 +2297,6 @@ permissions.  */)
   if (newsize < oldsize && ftruncate (ofd, newsize) != 0)
     report_file_error ("Truncating output file", newname);
 
-#ifndef MSDOS
   /* Preserve the original file permissions, and if requested, also its
      owner and group.  */
   {
@@ -2369,7 +2340,6 @@ permissions.  */)
       case -1: report_file_error ("Copying permissions to", newname);
       }
   }
-#endif	/* not MSDOS */
 
 #if HAVE_LIBSELINUX
   if (conlength > 0)
@@ -2397,14 +2367,6 @@ permissions.  */)
 
   emacs_close (ifd);
 
-#ifdef MSDOS
-  /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
-     and if it can't, it tells so.  Otherwise, under MSDOS we usually
-     get only the READ bit, which will make the copied file read-only,
-     so it's better not to chmod at all.  */
-  if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
-    chmod (SDATA (encoded_newname), st.st_mode & 07777);
-#endif /* MSDOS */
 #endif /* not WINDOWSNT */
 
   /* Discard the unwind protects.  */
@@ -2925,9 +2887,6 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 
   dir = file_name_directory (absname);
   eassert (!NILP (dir));
-#ifdef MSDOS
-  dir = Fdirectory_file_name (dir);
-#endif /* MSDOS */
 
   encoded = ENCODE_FILE (dir);
 #ifdef WINDOWSNT
@@ -3161,9 +3120,7 @@ file_accessible_directory_p (Lisp_Object file)
      hitting the disk.  */
   return (SBYTES (file) == 0
 	  || w32_accessible_directory_p (SSDATA (file), SBYTES (file)));
-# else	/* MSDOS */
-  return file_directory_p (file);
-# endif	 /* MSDOS */
+# endif
 #else	 /* !DOS_NT */
   /* On POSIXish platforms, use just one system call; this avoids a
      race and is typically faster.  */
@@ -3596,11 +3553,6 @@ TIMESTAMP is in the format of `current-time'. */)
 
   if (utimensat (AT_FDCWD, SSDATA (encoded_absname), ts, nofollow) != 0)
     {
-#ifdef MSDOS
-      /* Setting times on a directory always fails.  */
-      if (file_directory_p (encoded_absname))
-	return Qnil;
-#endif
       report_file_error ("Setting file times", absname);
     }
 
